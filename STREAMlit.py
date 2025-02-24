@@ -13,7 +13,7 @@ from surprise import accuracy
 def load_data():
     df = pd.read_csv('amazon.csv')
     df['rating_count'] = pd.to_numeric(df['rating_count'].replace({',': ''}, regex=True), errors='coerce')
-    df['rating_count'] = df['rating_count'].replace({',': ''}, regex=True).astype(float).fillna(df['rating_count'].median()).astype(int)
+    df['rating_count'] = df['rating_count'].fillna(df['rating_count'].median()).astype(int)
     df['discounted_price'] = df['discounted_price'].replace({'₹': '', ',': ''}, regex=True).astype(float)
     df['actual_price'] = df['actual_price'].replace({'₹': '', ',': ''}, regex=True).astype(float)
     df['discount_percentage'] = df['discount_percentage'].replace({'%': '', ',': ''}, regex=True).astype(float)
@@ -39,12 +39,12 @@ def compute_similarity(df):
     
     return cosine_sim, category_sim
 
-def get_recommendations(product_id, final_sim, df, top_n=5):
-    if product_id not in df['product_id'].values:
-        return "Product ID not found."
-    product_idx = df[df['product_id'] == product_id].index[0]
+def get_recommendations(product_name, final_sim, df, top_n=5):
+    if product_name not in df['product_name'].values:
+        return "Product name not found."
+    product_idx = df[df['product_name'] == product_name].index[0]
     sim_scores = sorted(list(enumerate(final_sim[product_idx])), key=lambda x: x[1], reverse=True)[1:top_n+1]
-    return df.iloc[[i[0] for i in sim_scores]][['product_id', 'product_name']]
+    return df.iloc[[i[0] for i in sim_scores]][['product_name', 'discounted_price', 'rating']]
 
 def train_svd_model(df):
     reader = Reader(rating_scale=(df['rating'].min(), df['rating'].max()))
@@ -72,9 +72,9 @@ cosine_sim, category_sim = compute_similarity(df)
 final_sim = 0.5 * cosine_sim + 0.5 * category_sim
 
 st.sidebar.header("Product Recommendation")
-product_id = st.sidebar.text_input("Enter Product ID:")
+product_name = st.sidebar.selectbox("Select Product Name:", df['product_name'].unique())
 if st.sidebar.button("Get Recommendations"):
-    recommendations = get_recommendations(product_id, final_sim, df)
+    recommendations = get_recommendations(product_name, final_sim, df)
     st.write(recommendations)
 
 st.sidebar.header("User-Based Recommendation")
