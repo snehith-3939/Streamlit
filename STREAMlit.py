@@ -114,13 +114,11 @@ if st.sidebar.button("Recommend for User"):
         st.write("Not enough rating data to generate recommendations.")
 
 st.sidebar.header("Hybrid Recommendation System")
-user_id_hybrid = st.sidebar.text_input("Enter User ID:")
-product_name_hybrid = st.sidebar.text_input("Enter Product Name:")
 
 if st.sidebar.button("Get Hybrid Recommendations"):
     model, _ = train_svd_model(df)  # Train CF model
     if model:
-        hybrid_recommendations = get_hybrid_recommendations(user_id_hybrid, product_name_hybrid, model, final_sim, df)
+        hybrid_recommendations = get_hybrid_recommendations(user_id, product_name, model, final_sim, df)
         st.write(hybrid_recommendations)
     else:
         st.write("Not enough rating data to generate recommendations.")
