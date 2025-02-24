@@ -12,6 +12,7 @@ from surprise import accuracy
 
 def load_data():
     df = pd.read_csv('amazon.csv')
+    df['rating_count'] = pd.to_numeric(df['rating_count'].replace({',': ''}, regex=True), errors='coerce')
     df['rating_count'] = df['rating_count'].replace({',': ''}, regex=True).astype(float).fillna(df['rating_count'].median()).astype(int)
     df['discounted_price'] = df['discounted_price'].replace({'₹': '', ',': ''}, regex=True).astype(float)
     df['actual_price'] = df['actual_price'].replace({'₹': '', ',': ''}, regex=True).astype(float)
