@@ -59,8 +59,14 @@ def train_svd_model(df):
 def recommend_products(user_id, model, df, n=5):
     all_products = df['product_id'].unique()
     user_rated_products = df[df['user_id'] == user_id]['product_id'].tolist()
+    
     predictions = [model.predict(user_id, pid) for pid in all_products if pid not in user_rated_products]
-    return sorted(predictions, key=lambda x: x.est, reverse=True)[:n]
+    top_products = sorted(predictions, key=lambda x: x.est, reverse=True)[:n]
+
+    recommended_products = df[df['product_id'].isin([p.iid for p in top_products])][['product_name', 'discounted_price', 'rating']]
+    
+    return recommended_products
+
 
 st.title("Amazon Product Recommendation System")
 
@@ -80,7 +86,9 @@ if st.sidebar.button("Get Recommendations"):
 st.sidebar.header("User-Based Recommendation")
 user_id = st.sidebar.text_input("Enter User ID:")
 if st.sidebar.button("Recommend for User"):
-    model, rmse = train_svd_model(df)
-    recommendations = recommend_products(user_id, model, df)
-    st.write([(p.iid, p.est) for p in recommendations])
-    st.write(f"Model RMSE: {rmse:.4f}")
+    model, _ = train_svd_model(df)  # No need to return RMSE
+    if model:
+        recommendations = recommend_products(user_id, model, df)
+        st.write(recommendations)
+    else:
+        st.write("Not enough rating data to generate recommendations.")
